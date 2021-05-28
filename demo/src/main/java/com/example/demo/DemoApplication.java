@@ -1,101 +1,26 @@
 package com.example.demo;
 
-import com.example.demo.exception.ClassifyException;
-import com.example.demo.exception.PersistentClassifierException;
-import com.example.demo.implementation.NaiveBayesClassifierMapImpl;
-import com.example.demo.implementation.NaiveBayesExplainerImpl;
-import com.example.demo.interfaces.IClassification;
-import com.example.demo.interfaces.IClassificationExplained;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @SpringBootApplication
 public class DemoApplication {
-
-	public static final String YES = "Yes";
-	public static final String NO = "No";
-	/**
-	 * Header table as per https://taylanbil.github.io/boostedNB or
-	 * http://ai.fon.bg.ac.rs/wp-content/uploads/2015/04/ML-Classification-NaiveBayes-2014.pdf
-	 */
-	public static final String[] colName = {
-			"outlook", "temp", "humidity", "wind", "play"
-	};
-
-	/**
-	 * Data table as per https://taylanbil.github.io/boostedNB or
-	 * http://ai.fon.bg.ac.rs/wp-content/uploads/2015/04/ML-Classification-NaiveBayes-2014.pdf
-	 */
-	public static final String[][] data = {
-			{"Sunny", "Hot", "High", "Weak", "No"},
-			{"Sunny", "Hot", "High", "Strong", "No"},
-			{"Overcast", "Hot", "High", "Weak", "Yes"},
-			{"Rain", "Mild", "High", "Weak", "Yes"},
-			{"Rain", "Cool", "Normal", "Weak", "Yes"},
-			{"Rain", "Cool", "Normal", "Strong", "No"},
-			{"Overcast", "Cool", "Normal", "Strong", "Yes"},
-			{"Sunny", "Mild", "High", "Weak", "No"},
-			{"Sunny", "Cool", "Normal", "Weak", "Yes"},
-			{"Rain", "Mild", "Normal", "Weak", "Yes"},
-			{"Sunny", "Mild", "Normal", "Strong", "Yes"},
-			{"Overcast", "Mild", "High", "Strong", "Yes"},
-			{"Overcast", "Hot", "Normal", "Weak", "Yes"},
-			{"Rain", "Mild", "High", "Strong", "No"},};
-
 	public static void main(String[] args) {
-		try {
-			String[] cats = {YES, NO};
-			// Create a new bayes classifier with string categories and string features.
-			NaiveBayesClassifierMapImpl bayes = new NaiveBayesClassifierMapImpl("tennis", cats);
+		SpringApplication.run(DemoApplication.class, args);
+	}
 
-			// Examples to learn from.
-			for (int i = 0; i < data.length; i++) {
-				Map<String, String> features = new HashMap();
-				for (int j = 0; j < colName.length - 1; j++) {
-					features.put(colName[j], data[i][j]);
-				}
-				// learn ex. Category=Yes Conditions=Sunny, Cool, Normal and Weak.
-				bayes.learn(data[i][colName.length - 1], features);
+	@Bean
+	public WebMvcConfigurer corsConfigurer() {
+		return new WebMvcConfigurer() {
+			@Override
+			public void addCorsMappings(CorsRegistry registry) {
+				registry.addMapping("/response/newsClassifier").allowedOrigins("http://localhost:8080");
 			}
-
-			Map<String, String> features = new HashMap();
-			features.put("outlook", "Sunny");
-			features.put("temp", "Cool");
-			features.put("humidity", "High");
-			features.put("wind", "Strong");
-
-			// Shall we play given given weather conditions Sunny, Cool, Rainy and Windy ?
-			IClassification predict = bayes.classify(features, true);
-			for (int i = 0; i < predict.getClassProbabilities().length; i++) {
-				System.out.println("P(" + predict.getClassProbabilities()[i].getCategory() + ")=" + predict.getClassProbabilities()[i].getProbability());
-			}
-			if (predict.getExplanationData() != null) {
-				NaiveBayesExplainerImpl explainer = new NaiveBayesExplainerImpl();
-				IClassificationExplained explained = explainer.explain(predict);
-				System.out.println(explained.toString());
-
-				ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-				ScriptEngine scriptEngine = scriptEngineManager.getEngineByName("JavaScript");
-				// JavaScript code from String
-				Double proba = (Double) scriptEngine.eval(explained.toString());
-				System.out.println("Result of evaluating mathematical expressions in String = " + proba);
-			}
-		} catch (PersistentClassifierException ex) {
-			Logger.getLogger(DemoApplication.class.getName()).log(Level.SEVERE, null, ex);
-		} catch (ClassifyException ex) {
-			Logger.getLogger(DemoApplication.class.getName()).log(Level.SEVERE, null, ex);
-		} catch (Throwable ex) {
-			Logger.getLogger(DemoApplication.class.getName()).log(Level.SEVERE, null, ex);
-		}
-
-		//SpringApplication.run(DemoApplication.class, args);
+		};
 	}
 
 }
