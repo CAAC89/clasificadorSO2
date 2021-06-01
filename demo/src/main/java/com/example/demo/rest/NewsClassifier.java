@@ -52,7 +52,7 @@ public class NewsClassifier {
 
             IntStream.range(0, classifier.getCategoryNewsDTOArrayList().size()).parallel().forEach(
                     i -> {
-                        if(NewsClassifierUtil.getMaxValueByResultDTOList(resultTotalListDTO).getCategoryNews() == classifier.getCategoryNewsDTOArrayList().get(i).getCategoryNews()){
+                        if(NewsClassifierUtil.getMaxValueByResultDTOList(resultTotalListDTO).getCategoryNews().equals(classifier.getCategoryNewsDTOArrayList().get(i).getCategoryNews())){
                             classifier.setTotalNews(classifier.getTotalNews()+1);
                             classifier.getCategoryNewsDTOArrayList().get(i).setCategoryNews(classifier.getCategoryNewsDTOArrayList().get(i).getCategoryNews());
                             classifier.getCategoryNewsDTOArrayList().get(i).setClassifiers(classifier.getCategoryNewsDTOArrayList().get(i).getClassifiers()+1);
