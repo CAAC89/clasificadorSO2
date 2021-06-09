@@ -189,7 +189,7 @@ public class Controller {
                         classifier.getCategoryNewsDTOArrayList().get(i).setClassifiers(classifier.getCategoryNewsDTOArrayList().get(i).getClassifiers());
                     }
                     classifier.getCategoryNewsDTOArrayList().get(i).setTokens(classifier.getCategoryNewsDTOArrayList().get(i).getTokens());
-
+                    classifier.getCategoryNewsDTOArrayList().get(i).setProbability(resultTotalListDTO.get(i).getCalculatePriorProb());
                 }
         );
 

@@ -5,6 +5,7 @@ public class CategoryNewsDTO {
     private String categoryNews;
     private int classifiers;
     private int tokens;
+    private float probability;
 
 
     
@@ -39,13 +40,18 @@ public class CategoryNewsDTO {
     public void setTokens(int tokens) {
         this.tokens = tokens;
     }
-    
-    
 
+    public float getProbability() {
+        return probability;
+    }
 
-	@Override
+    public void setProbability(float probability) {
+        this.probability = probability;
+    }
+
+    @Override
 	public String toString() {
-		return "{categoryNews=" + categoryNews + ", classifiers=" + classifiers + ", tokens=" + tokens+ "}";
+		return "{categoryNews=" + categoryNews + ", classifiers=" + classifiers + ", tokens=" + tokens+ ", probability=" + probability+ "}";
 	}
 
 	
