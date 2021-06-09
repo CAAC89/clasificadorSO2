@@ -194,6 +194,7 @@ public class DictionaryTokensUtil {
         jsonObject.add("events", getDictionaryEvents());
         jsonObject.add("sports", getDictionarySports());
         jsonObject.add("economy", getDictionaryEconomy());
+        jsonObject.add("entertainment", getDictionaryEntertainment());
         return jsonObject;
     }
 

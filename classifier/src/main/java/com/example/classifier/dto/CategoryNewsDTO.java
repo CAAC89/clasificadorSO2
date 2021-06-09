@@ -6,6 +6,7 @@ public class CategoryNewsDTO {
     private int classifiers;
     private int tokens;
 
+
     
     
     public CategoryNewsDTO(String categoryNews, int classifiers, int tokens) {
@@ -38,11 +39,16 @@ public class CategoryNewsDTO {
     public void setTokens(int tokens) {
         this.tokens = tokens;
     }
+    
+    
+
 
 	@Override
 	public String toString() {
 		return "{categoryNews=" + categoryNews + ", classifiers=" + classifiers + ", tokens=" + tokens+ "}";
 	}
+
+	
     
     
 }
