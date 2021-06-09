@@ -19,7 +19,7 @@ import java.util.stream.IntStream;
 @RestController
 @RequestMapping("/response")
 public class NewsClassifier {
-    @PostMapping(
+   /* @PostMapping(
             value = "/newsClassifier",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -30,7 +30,7 @@ public class NewsClassifier {
 
         List<ResultDTO> resultTotalListDTO = new ArrayList<>();
 
-        if(validate==false){
+        if(!validate){
             throw new Exception();
         }else{
             IntStream.range(0, classifier.getCategoryNewsDTOArrayList().size()).parallel().forEach(
@@ -66,5 +66,14 @@ public class NewsClassifier {
             );
         }
         return ResponseEntity.ok(classifier);
+    }*/
+
+    @PostMapping(
+            value = "/newsClassifier",
+            consumes = {MediaType.APPLICATION_JSON_VALUE},
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<ClassifierDTO> postBody(String title, int numTokens) throws Exception {
+
+        return ResponseEntity.ok(null);
     }
 }
