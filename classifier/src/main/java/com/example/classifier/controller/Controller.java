@@ -12,9 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -244,6 +241,7 @@ public class Controller {
     			titleUrlDTO.setUrl(sendDTO.getUrl());
     			jsonArrayEvent.add(titleUrlDTO.toString());
     			jsonObject.add("Eventos", jsonArrayEvent.get(i));
+    			
     		}
     		else if(sendDTO.getTypeNew().equalsIgnoreCase("Health")) {
     			TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
@@ -279,45 +277,5 @@ public class Controller {
     	} 
         return jsonObject.toString();
     }
-
-
-    @PostMapping("/sendTitleUrlTopic")
-    public void sendTitleUrlTopic() throws Exception{
-        String json = "{\"title\":\"Salud informa que las vacunas de covid19 ya no hacen efecto\",\"news_url\":\"https://www.google.com\",\"dictionary\":\"{Politics: 1, Events: 4, Entertainment: 5, Sports: 0, Health: 9, Economy: 2}\"}";
-
-        JsonObject jsonObjectResult = new JsonObject();
-
-        JsonObject jsonDictionaryObject = new JsonParser().parse(json).getAsJsonObject();
-        String title = jsonDictionaryObject.get("title").getAsString();
-        String url = jsonDictionaryObject.get("news_url").getAsString();
-
-        NewsClassifierUtil.sendingPostRequest("http://localhost:8080/sendNewsClassifier",json);
-
-        //String getDataDictionary = NewsClassifierUtil.readUrl("http://localhost:8080/getNewsClassifier");
-
-        URL urlData = new URL("http://localhost:8080/getNewsClassifier");
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(urlData.openStream(),"UTF-8"));
-        String result = null;
-
-        for (String line; (line = reader.readLine()) != null;) {
-                result= result+line;
-                System.out.println(line);
-        }
-
-        //JsonObject jsonDataObject = new JsonParser().parse(getDataDictionary).getAsJsonObject();
-
-
-        template.send("newsTitleUrlTopic", jsonObjectResult.toString());
-    }
-
-
-    @GetMapping("/getTitleUrlTopic")
-    public String getTitleUrlTopic() {
-        String json=consumer.getMessagesNewsTitleUrl().get(0);
-        JsonObject jsonDictionaryObject = new JsonParser().parse(json).getAsJsonObject();
-        return jsonDictionaryObject.toString();
-    }
-
 
 }
