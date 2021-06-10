@@ -23,6 +23,9 @@ public class TitleUrlDTO {
         this.url = url;
     }
 
+	
+    
+    
     @Override
     public String toString() {
         return "{" + '"' +

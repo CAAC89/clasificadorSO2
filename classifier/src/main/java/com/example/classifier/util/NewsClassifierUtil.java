@@ -1,13 +1,17 @@
 package com.example.classifier.util;
 
+import com.example.classifier.dto.CategoryNewsDTO;
 import com.example.classifier.dto.ClassifierDTO;
 import com.example.classifier.dto.ResultDTO;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
 
 public class NewsClassifierUtil {
+    private static final String USER_AGENT = "Mozilla/5.0";
 
     public static int sumClassifier(ClassifierDTO classifier){
         int sumClassifiers = 0;
@@ -29,6 +33,12 @@ public class NewsClassifierUtil {
         return resultTotalListDTO.stream().max(Comparator.comparing(v -> v.getCalculatePriorProb())).get();
     }
 
+
+
+    public static CategoryNewsDTO getMaxValueByCategoryNewsDTOList(List<CategoryNewsDTO> resultTotalListDTO){
+        return resultTotalListDTO.stream().max(Comparator.comparing(v -> v.getProbability())).get();
+    }
+
     public static String readUrl(String urlString) throws Exception {
         BufferedReader reader = null;
         try {
@@ -46,5 +56,24 @@ public class NewsClassifierUtil {
                 reader.close();
         }
     }
+
+    public static void sendingPostRequest(String urlData,String json) throws Exception {
+
+        URL url = new URL(urlData);
+        HttpURLConnection http = (HttpURLConnection)url.openConnection();
+        http.setRequestMethod("POST");
+        http.setDoOutput(true);
+        http.setRequestProperty("Content-Type", "application/json");
+
+
+        byte[] out = json.getBytes(StandardCharsets.UTF_8);
+
+        OutputStream stream = http.getOutputStream();
+        stream.write(out);
+
+        System.out.println(http.getResponseCode() + " " + http.getResponseMessage());
+        http.disconnect();
+    }
+
 
 }

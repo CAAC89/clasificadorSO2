@@ -8,9 +8,13 @@ import com.google.gson.*;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -59,17 +63,18 @@ public class Controller {
     }
 
     @PostMapping("/sendNewsClassifier")
-    public void sendNewsClassifier(String json) throws Exception {
+    public void sendNewsClassifier(@RequestBody StartDTO json) throws Exception {
         //JSON DE PRUEBA UTILIZADO
         //String json = "{\"title\":\"Salud informa que las vacunas de covid19 ya no hacen efecto\",\"dictionary\":\"{Politics: 1, Events: 4, Entertainment: 5, Sports: 0, Health: 9, Economy: 2}\"}";
+        //String json = "{\"title\":\"Salud informa que las vacunas de covid19 ya no hacen efecto\",\"news_url\":\"https://www.google.com\",\"dictionary\":\"{Politics: 1, Events: 4, Entertainment: 5, Sports: 0, Health: 9, Economy: 2}\"}";
 
 
-		JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
-        @SuppressWarnings("unused")
-		String title = jsonObject.get("title").getAsString();
-        JsonElement dictionary = jsonObject.get("dictionary");
+        //JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
+		String title = json.getTitle();
+        String newUrl = json.getNews_url();
+        //JsonElement dictionary = jsonObject.get("dictionary");
 
-		JsonObject jsonDictionary = new JsonParser().parse(dictionary.getAsString()).getAsJsonObject();
+		JsonObject jsonDictionary = new JsonParser().parse(json.getDicitionary()).getAsJsonObject();
 		System.out.println(jsonDictionary);
 
         int politics = jsonDictionary.get("Politics").getAsInt();
@@ -173,18 +178,26 @@ public class Controller {
 
                     OperationDTO operationMultiplyDTO = new OperationDTO(operationDividedADTO.getDivide(),operationDividedBDTO.getDivide());
 
-                    resultTempTotalDTO.setCalculatePriorProb(operationMultiplyDTO.getMultiply());
+                    resultTempTotalDTO.setCalculatePriorProb(operationDividedBDTO.getMultiply());
                     resultTotalListDTO.add(resultTempTotalDTO);
 
                 }
         );
+        
+        ResultDTO maxData= NewsClassifierUtil.getMaxValueByResultDTOList(resultTotalListDTO);
 
-        IntStream.range(0, classifier.getCategoryNewsDTOArrayList().size()).parallel().forEach(
+        SendDTO sendDTO = new SendDTO();
+        sendDTO.setTitle(title);
+        sendDTO.setUrl(newUrl);
+        sendDTO.setTypeNew(maxData.getCategoryNews());
+        
+        
+       /* IntStream.range(0, classifier.getCategoryNewsDTOArrayList().size()).parallel().forEach(
                 i -> {
                     if(NewsClassifierUtil.getMaxValueByResultDTOList(resultTotalListDTO).getCategoryNews().equals(classifier.getCategoryNewsDTOArrayList().get(i).getCategoryNews())){
-                        classifier.setTotalNews(classifier.getTotalNews()+1);
+                        classifier.setTotalNews(classifier.getTotalNews());
                         classifier.getCategoryNewsDTOArrayList().get(i).setCategoryNews(classifier.getCategoryNewsDTOArrayList().get(i).getCategoryNews());
-                        classifier.getCategoryNewsDTOArrayList().get(i).setClassifiers(classifier.getCategoryNewsDTOArrayList().get(i).getClassifiers()+1);
+                        classifier.getCategoryNewsDTOArrayList().get(i).setClassifiers(classifier.getCategoryNewsDTOArrayList().get(i).getClassifiers());
                     }else{
                         classifier.getCategoryNewsDTOArrayList().get(i).setCategoryNews(classifier.getCategoryNewsDTOArrayList().get(i).getCategoryNews());
                         classifier.getCategoryNewsDTOArrayList().get(i).setClassifiers(classifier.getCategoryNewsDTOArrayList().get(i).getClassifiers());
@@ -192,251 +205,108 @@ public class Controller {
                     classifier.getCategoryNewsDTOArrayList().get(i).setTokens(classifier.getCategoryNewsDTOArrayList().get(i).getTokens());
                     classifier.getCategoryNewsDTOArrayList().get(i).setProbability(resultTotalListDTO.get(i).getCalculatePriorProb());
                 }
-        );
+        );*/
+
 
         //Responde de forma ordenada con probabilidad mas alta pero sin el dato
-        template.send("newsClassifierTopic", classifier.toString());
+        template.send("newsClassifierTopic", sendDTO.toString());
     }
+    
+    
+    
 
     @GetMapping("/getNewsClassifier")
     public String getMessagesNewsClassifier() {
-        String json=consumer.getMessagesNewsClassifier().get(0);
-        JsonObject jsonDictionaryObject = new JsonParser().parse(json).getAsJsonObject();
-        return jsonDictionaryObject.toString();
+    	JsonObject jsonObject = new JsonObject();
+    	JsonArray jsonArrayPolitic = new JsonArray();
+    	JsonArray jsonArrayEvent = new JsonArray();
+    	JsonArray jsonArrayHealth = new JsonArray();
+    	JsonArray jsonArrayEconomic = new JsonArray();
+    	JsonArray jsonArraySport = new JsonArray();
+    	JsonArray jsonArrayEntertaiment = new JsonArray();
+    	
+    	
+    	
+    	for(int i=0; i<consumer.getMessagesNewsClassifier().size();i++) {
+    		JsonObject jsonDictionaryObject = new JsonParser().parse(consumer.getMessagesNewsClassifier().get(i)).getAsJsonObject();
+    		Gson gson = new Gson();
+    		SendDTO sendDTO = gson.fromJson(jsonDictionaryObject, SendDTO.class);
+    		if(sendDTO.getTypeNew().equalsIgnoreCase("Politics")) {
+    			TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
+    			titleUrlDTO.setTitle(sendDTO.getTitle());
+    			titleUrlDTO.setUrl(sendDTO.getUrl());
+    			jsonArrayPolitic.add(titleUrlDTO.toString());
+    			jsonObject.add("Política", jsonArrayPolitic.get(i));
+    		}
+    		else if(sendDTO.getTypeNew().equalsIgnoreCase("Events")) {
+    			TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
+    			titleUrlDTO.setTitle(sendDTO.getTitle());
+    			titleUrlDTO.setUrl(sendDTO.getUrl());
+    			jsonArrayEvent.add(titleUrlDTO.toString());
+    			jsonObject.add("Eventos", jsonArrayEvent.get(i));
+    		}
+    		else if(sendDTO.getTypeNew().equalsIgnoreCase("Health")) {
+    			TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
+    			titleUrlDTO.setTitle(sendDTO.getTitle());
+    			titleUrlDTO.setUrl(sendDTO.getUrl());
+    			List<TitleUrlDTO> list = new ArrayList<>();
+    			list.add(titleUrlDTO);
+    			jsonArrayHealth.add(list.toString());
+    			jsonObject.add("Salud", jsonArrayHealth.get(i));
+    		}
+    		else if(sendDTO.getTypeNew().equalsIgnoreCase("Economy")) {
+    			TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
+    			titleUrlDTO.setTitle(sendDTO.getTitle());
+    			titleUrlDTO.setUrl(sendDTO.getUrl());
+    			jsonArrayEconomic.add(titleUrlDTO.toString());
+    			jsonObject.add("Economia", jsonArrayEconomic.get(i));
+    			
+    		}
+    		else if(sendDTO.getTypeNew().equalsIgnoreCase("Sports")) {
+    			TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
+    			titleUrlDTO.setTitle(sendDTO.getTitle());
+    			titleUrlDTO.setUrl(sendDTO.getUrl());
+    			jsonArraySport.add(titleUrlDTO.toString());
+    			jsonObject.add("Deportes", jsonArraySport.get(i));			
+			}
+    		else if(sendDTO.getTypeNew().equalsIgnoreCase("Entertainment")) {
+    			TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
+    			titleUrlDTO.setTitle(sendDTO.getTitle());
+    			titleUrlDTO.setUrl(sendDTO.getUrl());
+    			jsonArrayEntertaiment.add(titleUrlDTO.toString());
+    			jsonObject.add("Entretenimiento", jsonArrayEntertaiment.get(i));
+			}
+    	} 
+        return jsonObject.toString();
     }
 
 
     @PostMapping("/sendTitleUrlTopic")
-    public void sendTitleUrlTopic(String json) {
-       // String json = "{\"title\":\"Salud informa que las vacunas de covid19 ya no hacen efecto\",\"news_url\":\"https://www.google.com\",\"dictionary\":\"{Politics: 1, Events: 4, Entertainment: 5, Sports: 0, Health: 9, Economy: 2}\"}";
+    public void sendTitleUrlTopic() throws Exception{
+        String json = "{\"title\":\"Salud informa que las vacunas de covid19 ya no hacen efecto\",\"news_url\":\"https://www.google.com\",\"dictionary\":\"{Politics: 1, Events: 4, Entertainment: 5, Sports: 0, Health: 9, Economy: 2}\"}";
+
         JsonObject jsonObjectResult = new JsonObject();
 
         JsonObject jsonDictionaryObject = new JsonParser().parse(json).getAsJsonObject();
         String title = jsonDictionaryObject.get("title").getAsString();
         String url = jsonDictionaryObject.get("news_url").getAsString();
-        JsonElement dictionary = jsonDictionaryObject.get("dictionary");
-        JsonObject jsonDictionary = new JsonParser().parse(dictionary.getAsString()).getAsJsonObject();
 
-        int politics = jsonDictionary.get("Politics").getAsInt();
-        int events = jsonDictionary.get("Events").getAsInt();
-        int entertainment = jsonDictionary.get("Entertainment").getAsInt();
-        int sports = jsonDictionary.get("Sports").getAsInt();
-        int health = jsonDictionary.get("Health").getAsInt();
-        int economy = jsonDictionary.get("Economy").getAsInt();
+        NewsClassifierUtil.sendingPostRequest("http://localhost:8080/sendNewsClassifier",json);
 
-        ArrayList<TitleUrlDTO> listPolitic = new ArrayList<>();
-        PoliticaDTO politicaDTO = new PoliticaDTO();
+        //String getDataDictionary = NewsClassifierUtil.readUrl("http://localhost:8080/getNewsClassifier");
 
-        ArrayList<TitleUrlDTO> listEvent = new ArrayList<>();
-        EventosDTO eventosDTO = new EventosDTO();
+        URL urlData = new URL("http://localhost:8080/getNewsClassifier");
 
-        ArrayList<TitleUrlDTO> listEntre = new ArrayList<>();
-        EntretenimientoDTO entretenimientoDTO = new EntretenimientoDTO();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(urlData.openStream(),"UTF-8"));
+        String result = null;
 
-        ArrayList<TitleUrlDTO> listDeport = new ArrayList<>();
-        DeportesDTO deportesDTO = new DeportesDTO();
-
-        ArrayList<TitleUrlDTO> listSalud = new ArrayList<>();
-        SaludDTO saludDTO = new SaludDTO();
-
-        ArrayList<TitleUrlDTO> listEconomic = new ArrayList<>();
-        EconomiaDTO economiaDTO = new EconomiaDTO();
-
-        TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
-        titleUrlDTO.setTitle(title);
-        titleUrlDTO.setUrl(url);
-
-
-
-
-
-        if (politics == 0) {
-            /*listPolitic.add(titleUrlDTO);
-            politicaDTO.setPolítica(listPolitic);*/
-
-            listEvent.add(titleUrlDTO);
-            eventosDTO.setEventos(listEvent);
-
-            listEntre.add(titleUrlDTO);
-            entretenimientoDTO.setEntretenimiento(listEntre);
-
-            listDeport.add(titleUrlDTO);
-            deportesDTO.setDeportes(listDeport);
-
-            listSalud.add(titleUrlDTO);
-            saludDTO.setSalud(listSalud);
-
-            listEconomic.add(titleUrlDTO);
-            economiaDTO.setEconomia(listEconomic);
-
-            jsonObjectResult.addProperty("Deportes","");
-            jsonObjectResult.addProperty("Economia",titleUrlDTO.toString());
-            jsonObjectResult.addProperty("Entretenimiento",titleUrlDTO.toString());
-            jsonObjectResult.addProperty("Eventos",titleUrlDTO.toString());
-            jsonObjectResult.addProperty("Política",titleUrlDTO.toString());
-            jsonObjectResult.addProperty("Salud",titleUrlDTO.toString());
-
-        }
-        else if (events == 0) {
-            listPolitic.add(titleUrlDTO);
-            politicaDTO.setPolítica(listPolitic);
-
-            /*listEvent.add(titleUrlDTO);
-            eventosDTO.setEventos(listEvent);*/
-
-            listEntre.add(titleUrlDTO);
-            entretenimientoDTO.setEntretenimiento(listEntre);
-
-            listDeport.add(titleUrlDTO);
-            deportesDTO.setDeportes(listDeport);
-
-            listSalud.add(titleUrlDTO);
-            saludDTO.setSalud(listSalud);
-
-            listEconomic.add(titleUrlDTO);
-            economiaDTO.setEconomia(listEconomic);
-
-            jsonObjectResult.addProperty("Deportes",listDeport.toString());
-            jsonObjectResult.addProperty("Economia",listEconomic.toString());
-            jsonObjectResult.addProperty("Entretenimiento",listEntre.toString());
-            jsonObjectResult.addProperty("Eventos","");
-            jsonObjectResult.addProperty("Política",listPolitic.toString());
-            jsonObjectResult.addProperty("Salud",listSalud.toString());
-
-        }
-        else if (entertainment == 0) {
-            listPolitic.add(titleUrlDTO);
-            politicaDTO.setPolítica(listPolitic);
-
-            listEvent.add(titleUrlDTO);
-            eventosDTO.setEventos(listEvent);
-
-            /*listEntre.add(titleUrlDTO);
-            entretenimientoDTO.setEntretenimiento(listEntre);*/
-
-            listDeport.add(titleUrlDTO);
-            deportesDTO.setDeportes(listDeport);
-
-            listSalud.add(titleUrlDTO);
-            saludDTO.setSalud(listSalud);
-
-            listEconomic.add(titleUrlDTO);
-            economiaDTO.setEconomia(listEconomic);
-
-            jsonObjectResult.addProperty("Deportes",listDeport.toString());
-            jsonObjectResult.addProperty("Economia",listEconomic.toString());
-            jsonObjectResult.addProperty("Entretenimiento","");
-            jsonObjectResult.addProperty("Eventos",listEvent.toString());
-            jsonObjectResult.addProperty("Política",listPolitic.toString());
-            jsonObjectResult.addProperty("Salud",listSalud.toString());
-
-        }
-        else if (sports == 0) {
-            listPolitic.add(titleUrlDTO);
-            politicaDTO.setPolítica(listPolitic);
-
-            listEvent.add(titleUrlDTO);
-            eventosDTO.setEventos(listEvent);
-
-            listEntre.add(titleUrlDTO);
-            entretenimientoDTO.setEntretenimiento(listEntre);
-
-            /*listDeport.add(titleUrlDTO);
-            deportesDTO.setDeportes(listDeport);*/
-
-            listSalud.add(titleUrlDTO);
-            saludDTO.setSalud(listSalud);
-
-            listEconomic.add(titleUrlDTO);
-            economiaDTO.setEconomia(listEconomic);
-
-            jsonObjectResult.addProperty("Deportes","");
-            jsonObjectResult.addProperty("Economia",listEconomic.toString());
-            jsonObjectResult.addProperty("Entretenimiento",listEntre.toString());
-            jsonObjectResult.addProperty("Eventos",listEvent.toString());
-            jsonObjectResult.addProperty("Política",listPolitic.toString());
-            jsonObjectResult.addProperty("Salud",listSalud.toString());
-
-        }
-        else if (health == 0) {
-            listPolitic.add(titleUrlDTO);
-            politicaDTO.setPolítica(listPolitic);
-
-            listEvent.add(titleUrlDTO);
-            eventosDTO.setEventos(listEvent);
-
-            listEntre.add(titleUrlDTO);
-            entretenimientoDTO.setEntretenimiento(listEntre);
-
-            listDeport.add(titleUrlDTO);
-            deportesDTO.setDeportes(listDeport);
-
-            /*listSalud.add(titleUrlDTO);
-            saludDTO.setSalud(listSalud);*/
-
-            listEconomic.add(titleUrlDTO);
-            economiaDTO.setEconomia(listEconomic);
-
-            jsonObjectResult.addProperty("Deportes",listDeport.toString());
-            jsonObjectResult.addProperty("Economia",listEconomic.toString());
-            jsonObjectResult.addProperty("Entretenimiento",listEntre.toString());
-            jsonObjectResult.addProperty("Eventos",listEvent.toString());
-            jsonObjectResult.addProperty("Política",listPolitic.toString());;
-            jsonObjectResult.addProperty("Salud","");
-        }
-        else if (economy == 0) {
-            listPolitic.add(titleUrlDTO);
-            politicaDTO.setPolítica(listPolitic);
-
-            listEvent.add(titleUrlDTO);
-            eventosDTO.setEventos(listEvent);
-
-            listEntre.add(titleUrlDTO);
-            entretenimientoDTO.setEntretenimiento(listEntre);
-
-            listDeport.add(titleUrlDTO);
-            deportesDTO.setDeportes(listDeport);
-
-            listSalud.add(titleUrlDTO);
-            saludDTO.setSalud(listSalud);
-
-            /*listEconomic.add(titleUrlDTO);
-            economiaDTO.setEconomia(listEconomic);*/
-
-            jsonObjectResult.addProperty("Deportes",listDeport.toString());
-            jsonObjectResult.addProperty("Economia","");
-            jsonObjectResult.addProperty("Entretenimiento",listEntre.toString());
-            jsonObjectResult.addProperty("Eventos",listEvent.toString());
-            jsonObjectResult.addProperty("Política",listPolitic.toString());
-            jsonObjectResult.addProperty("Salud",listSalud.toString());
-        }else{
-            listPolitic.add(titleUrlDTO);
-            politicaDTO.setPolítica(listPolitic);
-
-            listEvent.add(titleUrlDTO);
-            eventosDTO.setEventos(listEvent);
-
-            listEntre.add(titleUrlDTO);
-            entretenimientoDTO.setEntretenimiento(listEntre);
-
-            listDeport.add(titleUrlDTO);
-            deportesDTO.setDeportes(listDeport);
-
-            listSalud.add(titleUrlDTO);
-            saludDTO.setSalud(listSalud);
-
-            listEconomic.add(titleUrlDTO);
-            economiaDTO.setEconomia(listEconomic);
-
-            jsonObjectResult.addProperty("Deportes",listDeport.toString());
-            jsonObjectResult.addProperty("Economia",listEconomic.toString());
-            jsonObjectResult.addProperty("Entretenimiento",listEntre.toString());
-            jsonObjectResult.addProperty("Eventos",listEvent.toString());
-            jsonObjectResult.addProperty("Política",listPolitic.toString());
-            jsonObjectResult.addProperty("Salud",listSalud.toString());
+        for (String line; (line = reader.readLine()) != null;) {
+                result= result+line;
+                System.out.println(line);
         }
 
-        System.out.println(jsonObjectResult);
+        //JsonObject jsonDataObject = new JsonParser().parse(getDataDictionary).getAsJsonObject();
+
 
         template.send("newsTitleUrlTopic", jsonObjectResult.toString());
     }
