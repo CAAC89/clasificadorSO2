@@ -229,50 +229,58 @@ public class Controller {
     		Gson gson = new Gson();
     		SendDTO sendDTO = gson.fromJson(jsonDictionaryObject, SendDTO.class);
     		if(sendDTO.getTypeNew().equalsIgnoreCase("Politics")) {
-    			TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
-    			titleUrlDTO.setTitle(sendDTO.getTitle());
-    			titleUrlDTO.setUrl(sendDTO.getUrl());
-    			jsonArrayPolitic.add(titleUrlDTO.toString());
-    			jsonObject.add("Política", jsonArrayPolitic.get(i));
+    			JsonObject obj = new JsonObject();
+    			obj.addProperty("title", sendDTO.getTitle());
+    			obj.addProperty("url", sendDTO.getUrl());
+    			
+    			jsonArrayPolitic.add(obj);
+    		
+    			jsonObject.add("Política", jsonArrayPolitic);
     		}
     		else if(sendDTO.getTypeNew().equalsIgnoreCase("Events")) {
-    			TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
-    			titleUrlDTO.setTitle(sendDTO.getTitle());
-    			titleUrlDTO.setUrl(sendDTO.getUrl());
-    			jsonArrayEvent.add(titleUrlDTO.toString());
-    			jsonObject.add("Eventos", jsonArrayEvent.get(i));
+    			JsonObject obj = new JsonObject();
+    			obj.addProperty("title", sendDTO.getTitle());
+    			obj.addProperty("url", sendDTO.getUrl());
+    			
+    			jsonArrayEvent.add(obj);
+    		
+    			jsonObject.add("Eventos", jsonArrayEvent);
     			
     		}
     		else if(sendDTO.getTypeNew().equalsIgnoreCase("Health")) {
-    			TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
-    			titleUrlDTO.setTitle(sendDTO.getTitle());
-    			titleUrlDTO.setUrl(sendDTO.getUrl());
-    			List<TitleUrlDTO> list = new ArrayList<>();
-    			list.add(titleUrlDTO);
-    			jsonArrayHealth.add(list.toString());
-    			jsonObject.add("Salud", jsonArrayHealth.get(i));
+    			
+    			JsonObject obj = new JsonObject();
+    			obj.addProperty("title", sendDTO.getTitle());
+    			obj.addProperty("url", sendDTO.getUrl());
+    			
+    			jsonArrayHealth.add(obj);
+    		
+    			jsonObject.add("Salud", jsonArrayHealth);
     		}
     		else if(sendDTO.getTypeNew().equalsIgnoreCase("Economy")) {
-    			TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
-    			titleUrlDTO.setTitle(sendDTO.getTitle());
-    			titleUrlDTO.setUrl(sendDTO.getUrl());
-    			jsonArrayEconomic.add(titleUrlDTO.toString());
-    			jsonObject.add("Economia", jsonArrayEconomic.get(i));
+    			JsonObject obj = new JsonObject();
+    			obj.addProperty("title", sendDTO.getTitle());
+    			obj.addProperty("url", sendDTO.getUrl());
+    			
+    			jsonArrayEconomic.add(obj);
+    			jsonObject.add("Economia", jsonArrayEconomic);
     			
     		}
     		else if(sendDTO.getTypeNew().equalsIgnoreCase("Sports")) {
-    			TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
-    			titleUrlDTO.setTitle(sendDTO.getTitle());
-    			titleUrlDTO.setUrl(sendDTO.getUrl());
-    			jsonArraySport.add(titleUrlDTO.toString());
-    			jsonObject.add("Deportes", jsonArraySport.get(i));			
+    			JsonObject obj = new JsonObject();
+    			obj.addProperty("title", sendDTO.getTitle());
+    			obj.addProperty("url", sendDTO.getUrl());
+    			
+    			jsonArraySport.add(obj);
+    			jsonObject.add("Deportes", jsonArraySport);			
 			}
     		else if(sendDTO.getTypeNew().equalsIgnoreCase("Entertainment")) {
-    			TitleUrlDTO titleUrlDTO = new TitleUrlDTO();
-    			titleUrlDTO.setTitle(sendDTO.getTitle());
-    			titleUrlDTO.setUrl(sendDTO.getUrl());
-    			jsonArrayEntertaiment.add(titleUrlDTO.toString());
-    			jsonObject.add("Entretenimiento", jsonArrayEntertaiment.get(i));
+    			JsonObject obj = new JsonObject();
+    			obj.addProperty("title", sendDTO.getTitle());
+    			obj.addProperty("url", sendDTO.getUrl());
+    			
+    			jsonArrayEntertaiment.add(obj);
+    			jsonObject.add("Entretenimiento", jsonArrayEntertaiment);
 			}
     	} 
         return jsonObject.toString();
