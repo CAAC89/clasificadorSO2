@@ -207,8 +207,8 @@ public class Controller {
 
 
     @PostMapping("/sendTitleUrlTopic")
-    public void sendTitleUrlTopic() {
-        String json = "{\"title\":\"Salud informa que las vacunas de covid19 ya no hacen efecto\",\"news_url\":\"https://www.google.com\",\"dictionary\":\"{Politics: 1, Events: 4, Entertainment: 5, Sports: 0, Health: 9, Economy: 2}\"}";
+    public void sendTitleUrlTopic(String json) {
+       // String json = "{\"title\":\"Salud informa que las vacunas de covid19 ya no hacen efecto\",\"news_url\":\"https://www.google.com\",\"dictionary\":\"{Politics: 1, Events: 4, Entertainment: 5, Sports: 0, Health: 9, Economy: 2}\"}";
         JsonObject jsonObjectResult = new JsonObject();
 
         JsonObject jsonDictionaryObject = new JsonParser().parse(json).getAsJsonObject();
@@ -246,12 +246,6 @@ public class Controller {
         titleUrlDTO.setTitle(title);
         titleUrlDTO.setUrl(url);
 
-        JsonArray jsonArrayPolitic= new JsonArray();
-        JsonArray jsonArrayEvent= new JsonArray();
-        JsonArray jsonArrayEntre= new JsonArray();
-        JsonArray jsonArrayDeport= new JsonArray();
-        JsonArray jsonArraySalud= new JsonArray();
-        JsonArray jsonArrayEconomy= new JsonArray();
 
 
 
