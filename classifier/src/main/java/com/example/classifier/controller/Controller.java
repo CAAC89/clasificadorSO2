@@ -45,8 +45,8 @@ public class Controller {
                 template.send("newsdiarioextra", json);
                 break;
         }
-
     }
+
 
     @PostMapping("/sendDictionaryTokens")
     public void sendDictionaryTokens() {
@@ -54,8 +54,8 @@ public class Controller {
     }
 
     @GetMapping("/getDictionaryTokens")
-    public List<String> getMessagesDictionaryTokens() {
-        return consumer.getMessagesDictionaryTokens();
+    public String getMessagesDictionaryTokens() {
+        return consumer.getMessagesDictionaryTokens().get(0);
     }
 
     @PostMapping("/sendNewsClassifier")
@@ -70,6 +70,7 @@ public class Controller {
         JsonElement dictionary = jsonObject.get("dictionary");
 
 		JsonObject jsonDictionary = new JsonParser().parse(dictionary.getAsString()).getAsJsonObject();
+		System.out.println(jsonDictionary);
 
         int politics = jsonDictionary.get("Politics").getAsInt();
         int events = jsonDictionary.get("Events").getAsInt();
@@ -82,8 +83,8 @@ public class Controller {
 
         //Obtener de url get la cantidad de tokens
         String getDataDictionary = NewsClassifierUtil.readUrl("http://localhost:8080/getDictionaryTokens");
-        JsonArray jsonDictionaryArray = new JsonParser().parse(getDataDictionary).getAsJsonArray();
-        JsonObject jsonDictionaryObject = new JsonParser().parse(jsonDictionaryArray.get(0).getAsString()).getAsJsonObject();
+        //JsonArray jsonDictionaryArray = new JsonParser().parse(getDataDictionary).getAsJsonArray();
+        JsonObject jsonDictionaryObject = new JsonParser().parse(getDataDictionary).getAsJsonObject();
 
         JsonArray tokensPolitics =jsonDictionaryObject.getAsJsonArray("politics");
         JsonArray tokensEvents =jsonDictionaryObject.getAsJsonArray("events");
@@ -198,8 +199,10 @@ public class Controller {
     }
 
     @GetMapping("/getNewsClassifier")
-    public List<String> getMessagesNewsClassifier() {
-        return consumer.getMessagesNewsClassifier();
+    public String getMessagesNewsClassifier() {
+        String json=consumer.getMessagesNewsClassifier().get(0);
+        JsonObject jsonDictionaryObject = new JsonParser().parse(json).getAsJsonObject();
+        return jsonDictionaryObject.toString();
     }
 
 }
